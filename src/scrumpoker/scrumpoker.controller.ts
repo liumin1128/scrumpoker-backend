@@ -8,11 +8,9 @@ export class ScrumpokerController {
 
   @Post('joinroom')
   async joinRoom(@Body() joinCatDto: JoinRoomBody): Promise<Room> {
-    console.log('joinCatDto');
-    console.log(joinCatDto);
     const room = await this.scrumpokerService.joinRoom(joinCatDto);
-    console.log('room');
-    console.log(room);
+    // console.log('room');
+    // console.log(room);
     return room;
   }
 }

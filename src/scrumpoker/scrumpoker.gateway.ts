@@ -45,13 +45,12 @@ export class EventsGateway {
 
   @SubscribeMessage('connection')
   async handleConnection(@ConnectedSocket() client: Socket): Promise<void> {
-    console.log('Client connected:', client);
+    console.log('Client connected:', client.id);
     return;
   }
 
   @SubscribeMessage('disconnect')
   async handleDisconnect(@ConnectedSocket() client: Socket): Promise<void> {
-    console.log('Client disconnected:', client);
     console.log('Client disconnected:', client.id);
 
     try {
@@ -63,8 +62,7 @@ export class EventsGateway {
 
       client.to(roomID).emit('update', room);
     } catch (error) {
-      console.log('error');
-      console.log(error);
+      console.log(error.message);
     }
   }
 
@@ -86,7 +84,7 @@ export class EventsGateway {
     @MessageBody() data: ConnectRoomBody,
     @ConnectedSocket() client: Socket,
   ): Promise<Response> {
-    console.log('connectRoom:', client, data);
+    console.log('connectRoom:', client.id);
 
     const { roomID } = data;
     data.clientID = client.id;
@@ -97,7 +95,7 @@ export class EventsGateway {
       client.to(roomID).emit('update', room);
       return { code: 200, data: room };
     } catch (error) {
-      console.log('error:', error);
+      console.log('error:', error.message);
       client.to(roomID).emit('message', error.message);
       return { code: 401, message: error.message };
     }

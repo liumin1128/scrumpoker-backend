@@ -98,9 +98,6 @@ export class ScrumpokerService {
       data.clientID,
     ];
 
-    console.log('disconnect room');
-    console.log(room);
-
     this.rooms.update(room);
 
     return room;
@@ -130,9 +127,6 @@ export class ScrumpokerService {
       room.participants[participantIndex].status = 'offline';
     }
 
-    console.log('disconnect room');
-    console.log(room);
-
     this.rooms.update(room);
 
     return room;
@@ -155,7 +149,6 @@ export class ScrumpokerService {
     }
 
     room.participants = room.Participants.splice(participantIndex, 1);
-    console.log('room:', room);
 
     this.rooms.update(room);
 
@@ -203,7 +196,6 @@ export class ScrumpokerService {
     participant.voteValue = data.voteValue;
     participant.hasVoted = true;
     room.participants[participantIndex] = participant;
-    console.log('room:', room);
 
     this.rooms.update(room);
 
