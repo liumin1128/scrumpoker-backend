@@ -66,19 +66,6 @@ export class EventsGateway {
     }
   }
 
-  @SubscribeMessage('createRoom')
-  async createRoom(
-    @MessageBody() data: CreateRoomBody,
-    @ConnectedSocket() client: Socket,
-  ): Promise<Room> {
-    console.log('createRoom:', client.id, data);
-    data.clientID = client.id;
-    const room = this.scrumpokerService.createRoom(data);
-
-    client.join(data.roomID);
-    return room;
-  }
-
   @SubscribeMessage('connectRoom')
   async connectRoom(
     @MessageBody() data: ConnectRoomBody,

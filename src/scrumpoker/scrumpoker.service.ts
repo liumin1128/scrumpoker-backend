@@ -24,27 +24,6 @@ export class ScrumpokerService {
     this.rooms = this.db.addCollection('rooms');
   }
 
-  // 创建房间
-  createRoom(data: CreateRoomBody): Room {
-    const participant: Participant = {
-      id: uuidv4(),
-      username: data.username,
-      iAmScrumMaster: true,
-      canVote: false,
-      status: 'online',
-      clientIDs: [],
-    };
-
-    const room: Room = {
-      id: data.roomID,
-      participants: [participant],
-    };
-
-    this.rooms.insert(room);
-
-    return room;
-  }
-
   // 加入房间
   async joinRoom(data: JoinRoomBody): Promise<Room> {
     let room = await this.rooms.findOne({ id: data.roomID });
@@ -64,7 +43,19 @@ export class ScrumpokerService {
         id: data.roomID,
         participants: [participant],
       };
+
       await this.rooms.insert(room);
+
+      // 两个小时后删除该房间
+      setTimeout(
+        () => {
+          console.log(this.rooms.find().length);
+          this.rooms.remove(room);
+          console.log(this.rooms.find().length);
+        },
+        1000 * 60 * 60 * 2,
+      );
+
       return room;
     }
 
