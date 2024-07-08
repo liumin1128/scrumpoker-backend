@@ -13,6 +13,7 @@ import {
 } from './scrumpoker.interface';
 import { v4 as uuidv4 } from 'uuid';
 import * as loki from 'lokijs';
+import { setTimeout } from 'timers/promises';
 
 @Injectable()
 export class ScrumpokerService {
@@ -29,19 +30,19 @@ export class ScrumpokerService {
   async joinRoom(data: JoinRoomBody): Promise<Room> {
     let room = await this.rooms.findOne({ id: data.roomID });
 
-    const participant: Participant = {
-      id: uuidv4(),
-      username: data.username,
-      iAmScrumMaster: data.iAmScrumMaster,
-      canVote: !data.iAmScrumMaster,
-      status: 'offline',
-      clientIDs: [],
-      voteValue: 0,
-      hasVoted: false,
-    };
-
     // 如果不存在直接创建room
     if (!room) {
+      const participant: Participant = {
+        id: uuidv4(),
+        username: data.username,
+        iAmScrumMaster: data.iAmScrumMaster,
+        canVote: !data.iAmScrumMaster,
+        status: 'offline',
+        clientIDs: [],
+        voteValue: 0,
+        hasVoted: false,
+      };
+
       room = {
         id: data.roomID,
         participants: [participant],
@@ -62,9 +63,25 @@ export class ScrumpokerService {
       return room;
     }
 
-    // 如果存在更新room
-    room.participants = [...room.participants, participant];
-    this.rooms.update(room);
+    let participant: Participant;
+    participant = room.participants.find((i) => i.username === data.username);
+
+    if (!participant) {
+      participant = {
+        id: uuidv4(),
+        username: data.username,
+        iAmScrumMaster: data.iAmScrumMaster,
+        canVote: !data.iAmScrumMaster,
+        status: 'offline',
+        clientIDs: [],
+        voteValue: 0,
+        hasVoted: false,
+      };
+
+      // 如果存在更新room
+      room.participants = [...room.participants, participant];
+      this.rooms.update(room);
+    }
 
     return room;
   }

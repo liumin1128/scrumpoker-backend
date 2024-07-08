@@ -3,13 +3,9 @@ import {
   SubscribeMessage,
   WebSocketGateway,
   WebSocketServer,
-  WsResponse,
   ConnectedSocket,
   WsException,
 } from '@nestjs/websockets';
-import { UseFilters } from '@nestjs/common';
-// import { from, Observable } from 'rxjs';
-// import { map } from 'rxjs/operators';
 import { Server, Socket } from 'socket.io';
 import { ScrumpokerService } from './scrumpoker.service';
 import {
@@ -21,8 +17,6 @@ import {
   RemoveParticipantBody,
   Response,
 } from './scrumpoker.interface';
-
-import { WsExceptionFilter } from './scrumpoker.ws-exceptions.filter';
 
 @WebSocketGateway({
   cors: {
@@ -37,7 +31,7 @@ export class EventsGateway {
 
   // 当需要向特定房间发送消息时
   updateRoom(room: Room) {
-    this.server.to('123456').emit('update', room);
+    this.server.to(room.id).emit('update', room);
   }
 
   // @SubscribeMessage('events')
