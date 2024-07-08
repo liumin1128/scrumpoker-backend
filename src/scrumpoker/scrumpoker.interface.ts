@@ -11,6 +11,7 @@ export interface Participant {
 
 export interface Room {
   id: string;
+  status: string;
   participants: Participant[];
 }
 
@@ -45,16 +46,20 @@ export interface DisconnectBody {
 
 export interface RemoveParticipantBody {
   roomID: string;
-  participantID: string;
+  username: string;
 }
 
-export interface VoteBody {
+export interface VotingBody {
   roomID: string;
-  participantID: string;
+  username: string;
   voteValue: number;
 }
 
-export interface StartVoteBody {
+export interface StartVotingBody {
+  roomID: string;
+}
+
+export interface EndVotingBody {
   roomID: string;
 }
 

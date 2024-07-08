@@ -3,22 +3,26 @@ import {
   SubscribeMessage,
   WebSocketGateway,
   WebSocketServer,
-  // WsResponse,
+  WsResponse,
   ConnectedSocket,
+  WsException,
 } from '@nestjs/websockets';
+import { UseFilters } from '@nestjs/common';
 // import { from, Observable } from 'rxjs';
 // import { map } from 'rxjs/operators';
 import { Server, Socket } from 'socket.io';
 import { ScrumpokerService } from './scrumpoker.service';
 import {
-  CreateRoomBody,
   ConnectRoomBody,
   Room,
-  StartVoteBody,
-  VoteBody,
+  StartVotingBody,
+  EndVotingBody,
+  VotingBody,
   RemoveParticipantBody,
   Response,
 } from './scrumpoker.interface';
+
+import { WsExceptionFilter } from './scrumpoker.ws-exceptions.filter';
 
 @WebSocketGateway({
   cors: {
@@ -88,18 +92,37 @@ export class EventsGateway {
     }
   }
 
-  @SubscribeMessage('startVote')
-  async startVote(@MessageBody() data: StartVoteBody): Promise<Room> {
-    const room = this.scrumpokerService.startVote(data);
-    this.updateRoom(room);
-    return room;
+  @SubscribeMessage('startVoting')
+  async startVoting(@MessageBody() data: StartVotingBody): Promise<Room> {
+    try {
+      const room = this.scrumpokerService.startVoting(data);
+      this.updateRoom(room);
+      return room;
+    } catch (error) {
+      throw new WsException(error.message);
+    }
   }
 
-  @SubscribeMessage('vote')
-  async vote(@MessageBody() data: VoteBody): Promise<Room> {
-    const room = this.scrumpokerService.vote(data);
-    this.updateRoom(room);
-    return room;
+  @SubscribeMessage('endVoting')
+  async endVoting(@MessageBody() data: EndVotingBody): Promise<Room> {
+    try {
+      const room = this.scrumpokerService.endVoting(data);
+      this.updateRoom(room);
+      return room;
+    } catch (error) {
+      throw new WsException(error.message);
+    }
+  }
+
+  @SubscribeMessage('voting')
+  async voting(@MessageBody() data: VotingBody): Promise<Room> {
+    try {
+      const room = await this.scrumpokerService.voting(data);
+      this.updateRoom(room);
+      return room;
+    } catch (error) {
+      throw new WsException(error.message);
+    }
   }
 
   @SubscribeMessage('removeParticipant')
@@ -110,11 +133,4 @@ export class EventsGateway {
     this.updateRoom(room);
     return room;
   }
-
-  // @SubscribeMessage('clearRoom')
-  // async clearRoom(@MessageBody() data: ClearRoomBody): Promise<Room> {
-  //   const room = this.scrumpokerService.clearRoom(data);
-  //   this.updateRoom(room);
-  //   return room;
-  // }
 }

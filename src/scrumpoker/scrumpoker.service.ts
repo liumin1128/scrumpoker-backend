@@ -3,10 +3,11 @@ import {
   Room,
   Participant,
   CreateRoomBody,
+  EndVotingBody,
   JoinRoomBody,
   RemoveParticipantBody,
-  VoteBody,
-  StartVoteBody,
+  VotingBody,
+  StartVotingBody,
   DisconnectBody,
   ConnectRoomBody,
 } from './scrumpoker.interface';
@@ -35,6 +36,8 @@ export class ScrumpokerService {
       canVote: !data.iAmScrumMaster,
       status: 'offline',
       clientIDs: [],
+      voteValue: 0,
+      hasVoted: false,
     };
 
     // 如果不存在直接创建room
@@ -132,7 +135,7 @@ export class ScrumpokerService {
     }
 
     const participantIndex = room.Participants.findIndex(
-      (i) => i.id === data.participantID,
+      (i) => i.id === data.username,
     );
 
     if (participantIndex === -1) {
@@ -147,7 +150,7 @@ export class ScrumpokerService {
   }
 
   // 开始投票
-  startVote(data: StartVoteBody): Room {
+  startVoting(data: StartVotingBody): Room {
     const room = this.rooms.findOne({ id: data.roomID });
 
     if (!room) {
@@ -158,35 +161,61 @@ export class ScrumpokerService {
       return {
         ...i,
         hasVoted: false,
+        voteValue: 0,
       };
     });
 
     room.participants = participants;
+
+    room.status = 'voting';
 
     this.rooms.update(room);
 
     return room;
   }
 
-  vote(data: VoteBody): Room {
+  // 结束投票
+  endVoting(data: EndVotingBody): Room {
     const room = this.rooms.findOne({ id: data.roomID });
 
     if (!room) {
       throw new Error('room not found');
     }
 
-    const participantIndex = room.Participants.findIndex(
-      (i) => i.id === data.participantID,
+    room.status = 'voted';
+
+    this.rooms.update(room);
+
+    return room;
+  }
+
+  async voting(data: VotingBody): Promise<Room> {
+    const room = this.rooms.findOne({ id: data.roomID });
+
+    if (!room) {
+      throw new Error('room not found');
+    }
+
+    if (room.status !== 'voting') {
+      throw new Error('can not vote now');
+    }
+
+    const participantIndex = room.participants.findIndex(
+      (i) => i.username === data.username,
     );
 
     if (participantIndex === -1) {
       throw new Error('participant not found');
     }
 
-    const participant: Participant = room.participants[participantIndex];
-    participant.voteValue = data.voteValue;
-    participant.hasVoted = true;
-    room.participants[participantIndex] = participant;
+    room.participants[participantIndex].voteValue = data.voteValue;
+    room.participants[participantIndex].hasVoted = true;
+
+    if (
+      room.participants.filter((i) => i.canVote && !i.hasVoted).length === 0
+    ) {
+      room.status = 'voted';
+    }
 
     this.rooms.update(room);
 
