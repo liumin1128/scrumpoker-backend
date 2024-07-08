@@ -52,6 +52,8 @@ export class ScrumpokerService {
 
       // 两个小时后删除该房间
       setTimeout(
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
         () => {
           console.log(this.rooms.find().length);
           this.rooms.remove(room);
