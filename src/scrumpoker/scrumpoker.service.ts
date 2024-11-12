@@ -139,13 +139,13 @@ export class ScrumpokerService {
       throw new Error('room not found');
     }
 
-    const pId = room.Participants.findIndex((i) => i.id === data.username);
+    const pId = room.participants.findIndex((i) => i.id === data.uID);
 
     if (pId === -1) {
       throw new Error('participant not found');
     }
 
-    room.participants = room.Participants.splice(pId, 1);
+    room.participants.splice(pId, 1);
 
     this.rooms.update(room);
 

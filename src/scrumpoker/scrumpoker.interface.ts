@@ -46,7 +46,7 @@ export interface DisconnectBody {
 
 export interface RemoveParticipantBody {
   roomID: string;
-  username: string;
+  uID: string;
 }
 
 export interface VotingBody {
