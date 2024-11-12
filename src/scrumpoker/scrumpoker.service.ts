@@ -2,7 +2,6 @@ import { Injectable } from '@nestjs/common';
 import {
   Room,
   Participant,
-  CreateRoomBody,
   EndVotingBody,
   JoinRoomBody,
   RemoveParticipantBody,
@@ -13,7 +12,6 @@ import {
 } from './scrumpoker.interface';
 import { v4 as uuidv4 } from 'uuid';
 import * as loki from 'lokijs';
-import { setTimeout } from 'timers/promises';
 
 @Injectable()
 export class ScrumpokerService {
@@ -50,18 +48,6 @@ export class ScrumpokerService {
 
       await this.rooms.insert(room);
 
-      // 两个小时后删除该房间
-      setTimeout(
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
-        () => {
-          console.log(this.rooms.find().length);
-          this.rooms.remove(room);
-          console.log(this.rooms.find().length);
-        },
-        1000 * 60 * 60 * 2,
-      );
-
       return room;
     }
 
@@ -96,18 +82,18 @@ export class ScrumpokerService {
       throw new Error('room not found');
     }
 
-    const participantIndex = room.participants.findIndex(
+    const pId = room.participants.findIndex(
       (i) => i.username === data.username,
     );
 
-    if (participantIndex === -1) {
+    if (pId === -1) {
       throw new Error('participant not found');
     }
 
-    room.participants[participantIndex].status = 'online';
+    room.participants[pId].status = 'online';
 
-    room.participants[participantIndex].clientIDs = [
-      ...room.participants[participantIndex].clientIDs,
+    room.participants[pId].clientIDs = [
+      ...room.participants[pId].clientIDs,
       data.clientID,
     ];
 
@@ -124,20 +110,20 @@ export class ScrumpokerService {
       throw new Error('room not found');
     }
 
-    const participantIndex = room.participants.findIndex(
+    const pId = room.participants.findIndex(
       (i) => i.clientIDs.findIndex((j) => j === data.clientID) !== -1,
     );
 
-    if (participantIndex === -1) {
+    if (pId === -1) {
       throw new Error('participant not found');
     }
 
-    room.participants[participantIndex].clientIDs = room.participants[
-      participantIndex
-    ].clientIDs.filter((item) => item !== data.clientID);
+    room.participants[pId].clientIDs = room.participants[pId].clientIDs.filter(
+      (item) => item !== data.clientID,
+    );
 
-    if (room.participants[participantIndex].clientIDs.length === 0) {
-      room.participants[participantIndex].status = 'offline';
+    if (room.participants[pId].clientIDs.length === 0) {
+      room.participants[pId].status = 'offline';
     }
 
     this.rooms.update(room);
@@ -153,15 +139,13 @@ export class ScrumpokerService {
       throw new Error('room not found');
     }
 
-    const participantIndex = room.Participants.findIndex(
-      (i) => i.id === data.username,
-    );
+    const pId = room.Participants.findIndex((i) => i.id === data.username);
 
-    if (participantIndex === -1) {
+    if (pId === -1) {
       throw new Error('participant not found');
     }
 
-    room.participants = room.Participants.splice(participantIndex, 1);
+    room.participants = room.Participants.splice(pId, 1);
 
     this.rooms.update(room);
 
@@ -219,16 +203,16 @@ export class ScrumpokerService {
       throw new Error('can not vote now');
     }
 
-    const participantIndex = room.participants.findIndex(
+    const pId = room.participants.findIndex(
       (i) => i.username === data.username,
     );
 
-    if (participantIndex === -1) {
+    if (pId === -1) {
       throw new Error('participant not found');
     }
 
-    room.participants[participantIndex].voteValue = data.voteValue;
-    room.participants[participantIndex].hasVoted = true;
+    room.participants[pId].voteValue = data.voteValue;
+    room.participants[pId].hasVoted = true;
 
     if (
       room.participants.filter((i) => i.canVote && !i.hasVoted).length === 0
