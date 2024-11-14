@@ -19,6 +19,7 @@ export class ScrumpokerService {
   rooms: any;
 
   constructor() {
+    console.log('init scrumpoker service');
     this.rooms = {};
     this.db = new loki('example.db');
     this.rooms = this.db.addCollection('rooms');
